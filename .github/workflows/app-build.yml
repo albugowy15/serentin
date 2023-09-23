@@ -42,5 +42,5 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Start ios build
+      - name: Start build
         run: flutter build ${{ matrix.target }}
