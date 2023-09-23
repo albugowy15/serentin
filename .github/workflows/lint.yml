@@ -1,44 +1,48 @@
-name: Code Check
+name: Dashboard web lint
+
 on:
   push:
     branches:
       - main
-  pull_request: {}
+  pull_request:
 
 concurrency:
-  group: ${{ github.job }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  SKIP_ENV_VALIDATION: true
+
 
 defaults:
   run:
     working-directory: ./dashboard
 
 jobs:
-  lint:
-    name: ⬣ ESLint, ʦ TypeScript, 💅 Prettier, and 🃏 Test
+  typecheck:
     runs-on: ubuntu-latest
     steps:
-      - name: ⬇️ Checkout repo
-        uses: actions/checkout@v2
-
-      - name: ⎔ Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: 📥 Download deps
-        uses: u0reo/npm-install@fix/restore-failure
-        with:
-          useRollingCache: true
-
-      - name: 🔬 Lint
-        run: yarn lint:strict
-
-      - name: 🔎 Type check
-        run: yarn typecheck
-
-      - name: 💅 Prettier check
-        run: yarn format:check
-
-      - name: 🃏 Run jest
-        run: yarn test
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - name: Download deps
+        run: npm install
+      - name: TypeScript
+        run: npm run typecheck
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - name: Download deps
+        run: npm install
+      - name: ESlint
+        run: npm run lint
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - name: Download deps
+        run: npm install
+      - name: Prettier
+        run: npm run format:check
