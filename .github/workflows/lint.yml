@@ -9,6 +9,10 @@ concurrency:
   group: ${{ github.job }}-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    working-directory: ./dashboard
+
 jobs:
   lint:
     name: ⬣ ESLint, ʦ TypeScript, 💅 Prettier, and 🃏 Test

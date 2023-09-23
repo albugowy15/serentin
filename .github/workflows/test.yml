@@ -8,7 +8,11 @@ on:
 concurrency:
   group: ${{ github.job }}-${{ github.ref }}
   cancel-in-progress: true
-    
+
+defaults:
+  run:
+    working-directory: ./app
+
 jobs:
   unit-test:
     name: Unit tests on ${{ matrix.os }}

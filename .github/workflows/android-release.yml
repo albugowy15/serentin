@@ -9,10 +9,15 @@ concurrency:
   group: ${{ github.job }}-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    working-directory: ./app
+    
 jobs:
   build:
     name: Build for Android
     runs-on: ubuntu-latest
+    
     strategy:
       fail-fast: false
       matrix:
