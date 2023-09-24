@@ -1,21 +1,23 @@
-name: Dashboard web lint
+name: Dashboard Test & Lint
 
 on:
-  push:
+  pull_request:
     branches:
       - main
-  pull_request:
     
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+  
 env:
   SKIP_ENV_VALIDATION: true
-
 
 defaults:
   run:
     working-directory: ./dashboard
 
 jobs:
-  typecheck:
+  dashboard:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -24,21 +26,7 @@ jobs:
         run: npm install
       - name: TypeScript
         run: npm run typecheck
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - name: Download deps
-        run: npm install
       - name: ESlint
         run: npm run lint
-  prettier:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - name: Download deps
-        run: npm install
       - name: Prettier
         run: npm run format:check
