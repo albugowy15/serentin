@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  console.log(pathname);
   return (
     <aside className='px-4 pt-14'>
       <nav>
