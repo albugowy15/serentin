@@ -1,18 +1,24 @@
-name: App Build
+name: Mobile App Test & Build
 
 on:
   push:
     branches:
       - main
   pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 defaults:
   run:
     working-directory: ./app
 
 jobs:
-  build:
-    name: Build for Android and iOS
+  flutter:
+    name: Test + Build for Android and iOS
     runs-on: macos-latest
     strategy:
         fail-fast: false
@@ -37,6 +43,12 @@ jobs:
 
       - name: Get dependencies
         run: flutter pub get
+      
+      - run: flutter analyze
+      - name: Ensure the Dart code is formatted correctly
+        run: dart format --set-exit-if-changed .
+      - name: Run Flutter unit tests
+        run: flutter test
 
       - name: Start build
         run: flutter build ${{ matrix.target }}
