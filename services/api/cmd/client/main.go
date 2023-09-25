@@ -1,26 +1,42 @@
 package main
 
 import (
-	"fmt"
+	"flag"
 	"log"
-	"os"
+	"time"
 
+	pb "api/proto/greater"
+
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+const (
+	defaultName = "world"
+)
+
 var (
-	host = "localhost"
-	port = "5000"
+	addr = flag.String("addr", "localhost:50051", "the address to connect to")
+	name = flag.String("name", defaultName, "Name to greet")
 )
 
 func main() {
-	addr := fmt.Sprintf("%s:%s", host, port)
-	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	flag.Parse()
 
+	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Println("could not connect to grpc server: ", err)
-		os.Exit(1)
+		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
+
+	c := pb.NewGreaterClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: *name})
+	if err != nil {
+		log.Fatalf("Could not greet: %v", err)
+	}
+	log.Printf("Greeting %s", r.GetMessage())
 }
