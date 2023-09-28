@@ -28,10 +28,11 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
+	// test register
 	r, err := c.Register(ctx, &authPb.RegisterRequest{
 		Email:       "kholidbughowi@gmail.com",
 		Fullname:    "Mohamad kholid bughowi",
-		Password:    "Haho15106fe",
+		Password:    "Yhf7763hfe",
 		Birthdate:   "2001-10-15",
 		Gender:      "M",
 		Address:     "ITS Student dormitory",
@@ -41,6 +42,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not register user: %v", err)
 	}
-
 	log.Printf("UserId %s", r.GetUserId())
+
+	// test login
+	res, ok := c.Login(ctx, &authPb.LoginRequest{
+		Email:    "kholidbughowi@gmail.com",
+		Password: "Yhf7763hfe",
+	})
+	if ok != nil {
+		log.Fatalf("Could not login user: %v", err)
+	}
+	log.Printf("Token %s", res.GetToken())
 }
