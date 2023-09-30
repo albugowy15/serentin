@@ -7,7 +7,7 @@ import (
 	"net"
 
 	"api/internal/db"
-	"api/internal/service"
+	"api/internal/service/auth"
 	authPb "api/proto/auth"
 
 	"google.golang.org/grpc"
@@ -26,7 +26,7 @@ func main() {
 	}
 
 	gRPCServer := grpc.NewServer()
-	authServer := service.NewAuthServer(db)
+	authServer := auth.NewAuthServer(db)
 	authPb.RegisterAuthServiceServer(gRPCServer, authServer)
 
 	log.Printf("server listening at %v", lis.Addr())

@@ -1,9 +1,8 @@
-package service
+package auth
 
 import (
 	"api/configs"
 	"api/internal/db"
-	"api/pkg/validator"
 	pb "api/proto/auth"
 	"context"
 	"database/sql"
@@ -19,7 +18,6 @@ import (
 
 type AuthServiceServer struct {
 	db db.Database
-
 	*pb.UnimplementedAuthServiceServer
 }
 
@@ -29,28 +27,8 @@ func NewAuthServer(db *db.Database) *AuthServiceServer {
 	}
 }
 
-func validateRegister(req *pb.RegisterRequest) error {
-	if err := validator.ValidateEmail(req.Email); err != nil {
-		status.Errorf(codes.InvalidArgument, "email: %v", err)
-	}
-	if err := validator.ValidatePassword(req.Password); err != nil {
-		status.Errorf(codes.InvalidArgument, "password: %v", err)
-	}
-	if err := validator.ValidateFullName(req.Fullname); err != nil {
-		status.Errorf(codes.InvalidArgument, "fullname: %v", err)
-	}
-	birthDateinDate, err := time.Parse("2006-01-02", req.Birthdate)
-	if err != nil {
-		log.Fatalf("Error parsing date: %v\n", err)
-	}
-	if err := validator.ValidateBirtdate(&birthDateinDate); err != nil {
-		status.Errorf(codes.InvalidArgument, "birthdate: %v", err)
-	}
-	return nil
-}
-
 func (s *AuthServiceServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-	if err := validateRegister(req); err != nil {
+	if err := ValidateRegister(req); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "validation fails: %v", err)
 	}
 	row := s.db.Conn.QueryRow("SELECT id FROM users WHERE email=?", req.Email)
@@ -99,25 +77,70 @@ func (s *AuthServiceServer) Login(ctx context.Context, req *pb.LoginRequest) (*p
 	}
 
 	// create jwt
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    userCredential.ID,
-		"email": userCredential.Email,
-		"exp":   time.Now().Add(time.Hour * 24).Unix(),
-		"iat":   time.Now().Unix(),
-	})
-	jwtKey := configs.ViperEnvVariable("JWT_SECRET")
-	tokenStr, err := token.SignedString([]byte(jwtKey))
-	if err != nil {
-		log.Printf("Error signing token: %v\n", err)
-		return nil, status.Error(codes.Internal, "Internal error")
+	tokenClaims := &Claims{
+		Email: userCredential.Email,
+		ID:    userCredential.ID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 15)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
 	}
+	jwtAccessKey := configs.ViperEnvVariable("JWT_ACCESS_TOKEN_SECRET")
+	tokenStr := CreateJWTToken(jwtAccessKey, tokenClaims)
+
+	refreshTokenClaims := &Claims{
+		Email: userCredential.Email,
+		ID:    userCredential.ID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+	jwtRefreshKey := configs.ViperEnvVariable("JWT_REFRESH_TOKEN_SECRET")
+	refreshTokenStr := CreateJWTToken(jwtRefreshKey, refreshTokenClaims)
+
 	// send jwt
 	return &pb.LoginResponse{
 		Token:        tokenStr,
-		RefreshToken: tokenStr,
+		RefreshToken: refreshTokenStr,
 	}, nil
 }
 
 func (s *AuthServiceServer) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.LoginResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
+	tokenStr := req.GetRefreshToken()
+	jwtRefreshKey := configs.ViperEnvVariable("JWT_REFRESH_TOKEN_SECRET")
+	claims, err := DecodeJWTToken(tokenStr, jwtRefreshKey)
+	if err != nil {
+		return nil, err
+	}
+
+	if time.Until(claims.ExpiresAt.Time) > 30*time.Second {
+		return nil, status.Error(codes.InvalidArgument, "Refresh token expired")
+	}
+
+	newTokenClaims := &Claims{
+		Email: claims.Email,
+		ID:    claims.ID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 15)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+	jwtAccessKey := configs.ViperEnvVariable("JWT_ACCESS_TOKEN_SECRET")
+	newTokenStr := CreateJWTToken(jwtAccessKey, newTokenClaims)
+
+	refreshTokenClaims := &Claims{
+		Email: claims.Email,
+		ID:    claims.ID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+	refreshTokenStr := CreateJWTToken(jwtRefreshKey, refreshTokenClaims)
+
+	return &pb.LoginResponse{
+		Token:        newTokenStr,
+		RefreshToken: refreshTokenStr,
+	}, nil
 }

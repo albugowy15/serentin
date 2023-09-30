@@ -2,13 +2,14 @@ package validator
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"time"
+	"unicode"
 )
 
 var (
-	emailPattern    = `^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+[a-zA-Z0-9-.]+$`
-	passwordPattern = `^[A-Za-z]*[A-Z]+[A-Za-z0-9]*$|^[A-Za-z]*[a-z]+[A-Za-z0-9]*$|^[A-Za-z]*[0-9]+[A-Za-z0-9]*$`
+	emailPattern = `^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+[a-zA-Z0-9-.]+$`
 )
 
 func ValidateEmail(email string) error {
@@ -27,8 +28,31 @@ func ValidatePassword(password string) error {
 	if len(password) < 8 || len(password) > 30 {
 		return fmt.Errorf("password must be between 8 and 30 characters")
 	}
-	re := regexp.MustCompile(passwordPattern)
-	if re.MatchString(password) {
+	isValid := true
+	var (
+		upp, low, num bool
+		tot           uint8
+	)
+	for _, char := range password {
+		switch {
+		case unicode.IsUpper(char):
+			upp = true
+			tot++
+		case unicode.IsLower(char):
+			low = true
+			tot++
+		case unicode.IsNumber(char):
+			num = true
+			tot++
+		default:
+			isValid = false
+		}
+	}
+	if !upp || !low || !num || tot < 8 {
+		isValid = false
+	}
+
+	if isValid {
 		return nil
 	} else {
 		return fmt.Errorf("password must contain at least one uppercase letter, one lowercase letter and one number")
@@ -42,13 +66,20 @@ func ValidateFullName(fullname string) error {
 	return nil
 }
 
-func ValidateBirtdate(birthdate *time.Time) error {
-	if birthdate == nil {
-		return fmt.Errorf("birthdate is required")
+func ValidateBirtdate(birthdate string) error {
+	dateFormat := "2006-01-02"
+	parsedBirthdate, err := time.Parse(dateFormat, birthdate)
+	if err != nil {
+		log.Fatal(err)
+		return err
 	}
-	if birthdate.After(time.Now()) {
-		return fmt.Errorf("birtdate must be before today")
-	}
+	minBirthdate := time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC)
+	maxBirthdate := time.Now().AddDate(-18, 0, 0)
 
+	isValid := !parsedBirthdate.Before(minBirthdate) && !parsedBirthdate.After(maxBirthdate)
+
+	if !isValid {
+		return fmt.Errorf("invalid birthdate")
+	}
 	return nil
 }
