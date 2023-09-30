@@ -17,7 +17,7 @@ type Claims struct {
 
 func CreateJWTToken(secret string, claims *Claims) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenStr, err := token.SignedString(secret)
+	tokenStr, err := token.SignedString([]byte(secret))
 	if err != nil {
 		log.Printf("Error signing token: %v\n", err)
 	}

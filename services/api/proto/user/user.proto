@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+option go_package = "api/proto/user";
+package user;
+
+message UserData {
+    string fullname = 1;
+    string email = 2;
+    string gender = 3;
+    string birthdate = 4;
+    string address = 5;
+    string role = 6;
+    string personality = 7;
+    string job_position = 8;
+}
+
+message MessageResponse {
+    string id_user = 1;
+    string message = 2;
+}
+
+message ProfileRequest {
+    string id_user = 1;
+}
+
+message UpdateRequest {
+    string id_user = 1;
+    UserData user_data = 2;
+}
+
+message DeleteRequest {
+    string id_user = 1;
+}
+
+message ChangePasswordRequest {
+    string id_user = 1;
+    string new_password = 2;
+}
+
+service UserService {
+    rpc Profile (ProfileRequest) returns (UserData);
+    rpc Update (UpdateRequest) returns (MessageResponse);
+    rpc Delete (DeleteRequest) returns (MessageResponse);
+    rpc ChangePassword (ChangePasswordRequest) returns (MessageResponse);
+}

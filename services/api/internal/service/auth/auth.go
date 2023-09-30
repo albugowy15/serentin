@@ -29,7 +29,7 @@ func NewAuthServer(db *db.Database) *AuthServiceServer {
 
 func (s *AuthServiceServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	if err := ValidateRegister(req); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "validation fails: %v", err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	row := s.db.Conn.QueryRow("SELECT id FROM users WHERE email=?", req.Email)
 	var id string
