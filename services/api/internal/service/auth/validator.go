@@ -3,23 +3,21 @@ package auth
 import (
 	"api/pkg/validator"
 	pb "api/proto/auth"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"fmt"
 )
 
 func ValidateRegister(req *pb.RegisterRequest) error {
 	if err := validator.ValidateEmail(req.Email); err != nil {
-		status.Errorf(codes.InvalidArgument, "email: %v", err)
+		return fmt.Errorf("invalid email: %s", err)
 	}
 	if err := validator.ValidatePassword(req.Password); err != nil {
-		status.Errorf(codes.InvalidArgument, "password: %v", err)
+		return fmt.Errorf("invalid password: %s", err)
 	}
 	if err := validator.ValidateFullName(req.Fullname); err != nil {
-		status.Errorf(codes.InvalidArgument, "fullname: %v", err)
+		return fmt.Errorf("invalid full name: %s", err)
 	}
 	if err := validator.ValidateBirtdate(req.Birthdate); err != nil {
-		status.Errorf(codes.InvalidArgument, "birthdate: %v", err)
+		return fmt.Errorf("invalid birthdate: %s", err)
 	}
 	return nil
 }

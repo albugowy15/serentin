@@ -1,4 +1,4 @@
-package auth_test
+package validator_test
 
 import (
 	"api/pkg/validator"
