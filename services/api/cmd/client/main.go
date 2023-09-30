@@ -5,20 +5,15 @@ import (
 	"log"
 	"time"
 
-	pb "api/proto/greater"
+	authPb "api/proto/auth"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-const (
-	defaultName = "world"
-)
-
 var (
 	addr = flag.String("addr", "localhost:50051", "the address to connect to")
-	name = flag.String("name", defaultName, "Name to greet")
 )
 
 func main() {
@@ -29,14 +24,33 @@ func main() {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-
-	c := pb.NewGreaterClient(conn)
+	c := authPb.NewAuthServiceClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: *name})
+	// test register
+	r, err := c.Register(ctx, &authPb.RegisterRequest{
+		Email:       "kholidbughowi@gmail.com",
+		Fullname:    "Mohamad kholid bughowi",
+		Password:    "Yhf7763hfe",
+		Birthdate:   "2001-10-15",
+		Gender:      "M",
+		Address:     "ITS Student dormitory",
+		MbtiType:    "INTJ",
+		JobPosition: "Software Developer",
+	})
 	if err != nil {
-		log.Fatalf("Could not greet: %v", err)
+		log.Fatalf("Could not register user: %v", err)
 	}
-	log.Printf("Greeting %s", r.GetMessage())
+	log.Printf("UserId %s", r.GetUserId())
+
+	// test login
+	res, ok := c.Login(ctx, &authPb.LoginRequest{
+		Email:    "kholidbughowi@gmail.com",
+		Password: "Yhf7763hfe",
+	})
+	if ok != nil {
+		log.Fatalf("Could not login user: %v", err)
+	}
+	log.Printf("Token %s", res.GetToken())
 }

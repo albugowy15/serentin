@@ -1,13 +1,14 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net"
 
-	pb "api/proto/greater"
+	"api/internal/db"
+	"api/internal/service"
+	authPb "api/proto/auth"
 
 	"google.golang.org/grpc"
 )
@@ -16,26 +17,20 @@ var (
 	port = flag.Int("port", 50051, "The server port")
 )
 
-type Server struct {
-	pb.UnimplementedGreaterServer
-}
-
-func (s *Server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	log.Printf("Received: %v", in.GetName())
-	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
-}
-
 func main() {
 	flag.Parse()
+	db := db.Connect("127.0.0.1", 3306, "root", "root", "serentin_db")
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer()
-	pb.RegisterGreaterServer(s, &Server{})
+	gRPCServer := grpc.NewServer()
+	authServer := service.NewAuthServer(db)
+	authPb.RegisterAuthServiceServer(gRPCServer, authServer)
+
 	log.Printf("server listening at %v", lis.Addr())
-	if err := s.Serve(lis); err != nil {
+	if err := gRPCServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
