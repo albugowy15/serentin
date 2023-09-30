@@ -19,3 +19,4 @@ test-results/
 
 # Dependency directories
 vendor/
+.env
