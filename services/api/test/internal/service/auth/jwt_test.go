@@ -1,7 +1,6 @@
 package auth_test
 
 import (
-	"api/configs"
 	"api/internal/service/auth"
 	"testing"
 	"time"
@@ -18,7 +17,7 @@ func createToken() string {
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
-	secret := configs.ViperEnvVariable("JWT_ACCESS_TOKEN_SECRET")
+	secret := "the-most-strong-secret"
 	tokenStr := auth.CreateJWTToken(secret, claims)
 	return tokenStr
 }
@@ -35,7 +34,7 @@ func TestCreateJWTToken(t *testing.T) {
 func TestDecodeJWTToken(t *testing.T) {
 	// create token
 	token := createToken()
-	secret := configs.ViperEnvVariable("JWT_ACCESS_TOKEN_SECRET")
+	secret := "the-most-strong-secret"
 	claims, err := auth.DecodeJWTToken(token, secret)
 	t.Logf("claims: %v\n", claims)
 	if err != nil {
