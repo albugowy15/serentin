@@ -3,15 +3,13 @@ syntax = "proto3";
 option go_package = "api/proto/user";
 package user;
 
-message UserData {
+message EditableData {
     string fullname = 1;
     string email = 2;
-    string gender = 3;
-    string birthdate = 4;
-    string address = 5;
-    string role = 6;
-    string personality = 7;
-    string job_position = 8;
+    string birthdate = 3;
+    string address = 4;
+    int32 id_mbti = 5;
+    int32 id_job_position = 6;
 }
 
 message MessageResponse {
@@ -19,27 +17,34 @@ message MessageResponse {
     string message = 2;
 }
 
-message ProfileRequest {
+message UserId {
     string id_user = 1;
+}
+
+message ProfileResponse {
+    string fullname = 1;
+    string email = 2;
+    string gender = 3;
+    string birthdate = 4;
+    string address = 5;
+    string personality = 6;
+    string position = 7;
 }
 
 message UpdateRequest {
     string id_user = 1;
-    UserData user_data = 2;
-}
-
-message DeleteRequest {
-    string id_user = 1;
+    EditableData user_data = 2;
 }
 
 message ChangePasswordRequest {
     string id_user = 1;
-    string new_password = 2;
+    string old_password = 2;
+    string new_password = 3;
 }
 
 service UserService {
-    rpc Profile (ProfileRequest) returns (UserData);
+    rpc Profile (UserId) returns (ProfileResponse);
     rpc Update (UpdateRequest) returns (MessageResponse);
-    rpc Delete (DeleteRequest) returns (MessageResponse);
+    rpc Delete (UserId) returns (MessageResponse);
     rpc ChangePassword (ChangePasswordRequest) returns (MessageResponse);
 }
