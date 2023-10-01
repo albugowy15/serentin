@@ -9,10 +9,10 @@ CREATE TABLE `job_positions` (
 
 CREATE TABLE `mbti` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` char(5) NOT NULL,
+  `personality` char(5) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`)
+  UNIQUE KEY `personality` (`personality`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `solutions` (
@@ -33,7 +33,7 @@ CREATE TABLE `solutions_to_mbti` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `users` (
-  `id` uuid NOT NULL DEFAULT uuid(),
+  `id` varchar(255) NOT NULL,
   `fullname` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
@@ -55,13 +55,13 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `physics` (
-  `id` uuid NOT NULL DEFAULT uuid(),
+  `id` varchar(255) NOT NULL,
   `heart_rate` int(11) NOT NULL,
   `diastolic_blood_pressure` int(11) NOT NULL,
   `sistolic_blood_pressure` int(11) NOT NULL,
   `body_temp` float NOT NULL,
   `stress_level` int(11) DEFAULT NULL,
-  `id_user` uuid DEFAULT NULL,
+  `id_user` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
@@ -70,9 +70,9 @@ CREATE TABLE `physics` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `notification_history` (
-  `id` uuid NOT NULL DEFAULT uuid(),
+  `id` varchar(255) NOT NULL,
   `message` varchar(255) NOT NULL,
-  `id_user` uuid DEFAULT NULL,
+  `id_user` varchar(255) DEFAULT NULL,
   `status` char(10) NOT NULL,
   `level` char(10) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
@@ -83,9 +83,9 @@ CREATE TABLE `notification_history` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `logbook` (
-  `id` uuid NOT NULL DEFAULT uuid(),
+  `id` varchar(255) NOT NULL,
   `logs` varchar(255) NOT NULL,
-  `id_user` uuid DEFAULT NULL,
+  `id_user` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
@@ -94,9 +94,9 @@ CREATE TABLE `logbook` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `forecasting` (
-  `id` uuid NOT NULL DEFAULT uuid(),
-  `id_physic` uuid DEFAULT NULL,
-  `id_user` uuid DEFAULT NULL,
+  `id` varchar(255) NOT NULL,
+  `id_physic` varchar(255) DEFAULT NULL,
+  `id_user` varchar(255) DEFAULT NULL,
   `predicted_stress_level` int(11) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),

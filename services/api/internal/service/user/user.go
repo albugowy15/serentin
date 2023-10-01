@@ -27,7 +27,7 @@ func (s *UserServiceServer) Profile(ctx context.Context, req *pb.ProfileRequest)
 	err := s.db.Conn.Get(
 		user,
 		`SELECT u.fullname, u.email, u.gender, u.birthdate, u.role,
-		u.address, m.name AS personality, j.position AS job_position 
+		u.address, m.personality, j.position AS job_position 
 		FROM users u INNER JOIN mbti m ON u.id_mbti = m.id 
 		INNER JOIN job_positions j ON j.id = u.id_job_position 
 		WHERE u.id=?`,
