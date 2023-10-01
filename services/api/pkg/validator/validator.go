@@ -17,11 +17,10 @@ func ValidateEmail(email string) error {
 		return fmt.Errorf("email must be between 5 and 200 characters")
 	}
 	re := regexp.MustCompile(emailPattern)
-	if re.MatchString(email) {
-		return nil
-	} else {
+	if !re.MatchString(email) {
 		return fmt.Errorf("invalid email")
 	}
+	return nil
 }
 
 func ValidatePassword(password string) error {
@@ -71,7 +70,6 @@ func ValidateBirtdate(birthdate string) error {
 	parsedBirthdate, err := time.Parse(dateFormat, birthdate)
 	if err != nil {
 		log.Fatal(err)
-		return err
 	}
 	minBirthdate := time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC)
 	maxBirthdate := time.Now().AddDate(-18, 0, 0)

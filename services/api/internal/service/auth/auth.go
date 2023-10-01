@@ -31,26 +31,37 @@ func (s *AuthServiceServer) Register(ctx context.Context, req *pb.RegisterReques
 	if err := ValidateRegister(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	row := s.db.Conn.QueryRow("SELECT id FROM users WHERE email=?", req.Email)
 	var id string
-	err := row.Scan(&id)
-	if err != sql.ErrNoRows {
-		log.Println(err)
+	err := s.db.Conn.Get(&id, "SELECT id FROM users WHERE email=?", req.Email)
+	if err == nil {
 		return nil, status.Error(codes.InvalidArgument, "email already exist")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), 10)
 	if err != nil {
-		log.Printf("Error hashing password: %v", err)
-		return nil, status.Error(codes.Internal, "Internal server error")
+		log.Fatalf("Error hashing password: %v", err)
 	}
 
-	userStmt := `INSERT INTO users (id, email, fullname, password, gender, birthdate, address, role) 
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+	userStmt := `INSERT INTO users 
+				(id, email, fullname, password, gender, birthdate, address, role, id_mbti, id_job_position) 
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	userId := uuid.New().String()
-	_, err = s.db.Conn.Exec(userStmt, userId, req.Email, req.Fullname, hashedPassword, req.Gender, req.Birthdate, req.Address, "employee")
-	if err != nil {
+	res := s.db.Conn.MustExec(userStmt,
+		userId,
+		req.Email,
+		req.Fullname,
+		hashedPassword,
+		req.Gender,
+		req.Birthdate,
+		req.Address,
+		"employee",
+		req.IdMbti,
+		req.IdJobPosition,
+	)
+	if rowsCount, err := res.RowsAffected(); rowsCount == 0 || err != nil {
+		log.Printf("Rows affected: %v\n", rowsCount)
 		log.Printf("Error inserting user: %v\n", err)
+		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	return &pb.RegisterResponse{UserId: userId}, nil
@@ -68,7 +79,11 @@ func (s *AuthServiceServer) Login(ctx context.Context, req *pb.LoginRequest) (*p
 		"SELECT id, email, password FROM users WHERE email=?",
 		req.Email)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, status.Errorf(codes.Internal, "Email %s not found", req.Email)
+		}
 		log.Println(err)
+		return nil, status.Error(codes.Internal, "internal error")
 	}
 	// check hash match password
 	if err := bcrypt.CompareHashAndPassword([]byte(userCredential.Password), []byte(req.Password)); err != nil {
@@ -111,7 +126,7 @@ func (s *AuthServiceServer) RefreshToken(ctx context.Context, req *pb.RefreshTok
 	jwtRefreshKey := configs.ViperEnvVariable("JWT_REFRESH_TOKEN_SECRET")
 	claims, err := DecodeJWTToken(tokenStr, jwtRefreshKey)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	if time.Until(claims.ExpiresAt.Time) > 30*time.Second {

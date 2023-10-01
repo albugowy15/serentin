@@ -20,8 +20,8 @@ message RegisterRequest {
     string birthdate = 4;
     string gender = 5;
     string address = 6;
-    string mbtiType = 7;
-    string jobPosition = 8;
+    int32 id_mbti = 7;
+    int32 id_job_position = 8;
 }
 
 message RegisterResponse {

@@ -33,7 +33,6 @@ func getBasePath() string {
 
 func ViperEnvVariable(key string) string {
 	envPath := filepath.Join(basePath, ".env")
-	log.Printf("envPath: %s\n", envPath)
 	viper.SetConfigFile(envPath)
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -41,7 +40,7 @@ func ViperEnvVariable(key string) string {
 	}
 	value, ok := viper.Get(key).(string)
 	if !ok {
-		log.Fatalf("Invalid type assertion")
+		log.Fatalf("Viper : Invalid type assertion for %s\n", key)
 	}
 	return value
 }
