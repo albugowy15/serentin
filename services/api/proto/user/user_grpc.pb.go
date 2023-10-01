@@ -22,9 +22,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
-	Profile(ctx context.Context, in *ProfileRequest, opts ...grpc.CallOption) (*UserData, error)
+	Profile(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*ProfileResponse, error)
 	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*MessageResponse, error)
-	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*MessageResponse, error)
+	Delete(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*MessageResponse, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*MessageResponse, error)
 }
 
@@ -36,8 +36,8 @@ func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
 	return &userServiceClient{cc}
 }
 
-func (c *userServiceClient) Profile(ctx context.Context, in *ProfileRequest, opts ...grpc.CallOption) (*UserData, error) {
-	out := new(UserData)
+func (c *userServiceClient) Profile(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*ProfileResponse, error) {
+	out := new(ProfileResponse)
 	err := c.cc.Invoke(ctx, "/user.UserService/Profile", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (c *userServiceClient) Update(ctx context.Context, in *UpdateRequest, opts 
 	return out, nil
 }
 
-func (c *userServiceClient) Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*MessageResponse, error) {
+func (c *userServiceClient) Delete(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*MessageResponse, error) {
 	out := new(MessageResponse)
 	err := c.cc.Invoke(ctx, "/user.UserService/Delete", in, out, opts...)
 	if err != nil {
@@ -76,9 +76,9 @@ func (c *userServiceClient) ChangePassword(ctx context.Context, in *ChangePasswo
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
 type UserServiceServer interface {
-	Profile(context.Context, *ProfileRequest) (*UserData, error)
+	Profile(context.Context, *UserId) (*ProfileResponse, error)
 	Update(context.Context, *UpdateRequest) (*MessageResponse, error)
-	Delete(context.Context, *DeleteRequest) (*MessageResponse, error)
+	Delete(context.Context, *UserId) (*MessageResponse, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*MessageResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
@@ -87,13 +87,13 @@ type UserServiceServer interface {
 type UnimplementedUserServiceServer struct {
 }
 
-func (UnimplementedUserServiceServer) Profile(context.Context, *ProfileRequest) (*UserData, error) {
+func (UnimplementedUserServiceServer) Profile(context.Context, *UserId) (*ProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Profile not implemented")
 }
 func (UnimplementedUserServiceServer) Update(context.Context, *UpdateRequest) (*MessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-func (UnimplementedUserServiceServer) Delete(context.Context, *DeleteRequest) (*MessageResponse, error) {
+func (UnimplementedUserServiceServer) Delete(context.Context, *UserId) (*MessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 func (UnimplementedUserServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*MessageResponse, error) {
@@ -113,7 +113,7 @@ func RegisterUserServiceServer(s grpc.ServiceRegistrar, srv UserServiceServer) {
 }
 
 func _UserService_Profile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ProfileRequest)
+	in := new(UserId)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func _UserService_Profile_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/user.UserService/Profile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).Profile(ctx, req.(*ProfileRequest))
+		return srv.(UserServiceServer).Profile(ctx, req.(*UserId))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -149,7 +149,7 @@ func _UserService_Update_Handler(srv interface{}, ctx context.Context, dec func(
 }
 
 func _UserService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteRequest)
+	in := new(UserId)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func _UserService_Delete_Handler(srv interface{}, ctx context.Context, dec func(
 		FullMethod: "/user.UserService/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).Delete(ctx, req.(*DeleteRequest))
+		return srv.(UserServiceServer).Delete(ctx, req.(*UserId))
 	}
 	return interceptor(ctx, in, info, handler)
 }

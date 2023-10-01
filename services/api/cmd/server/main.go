@@ -13,7 +13,9 @@ import (
 	"api/configs"
 	"api/internal/db"
 	"api/internal/service/auth"
+	"api/internal/service/user"
 	authPb "api/proto/auth"
+	userPb "api/proto/user"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -89,7 +91,9 @@ func main() {
 	defer lis.Close()
 	gRPCServer := grpc.NewServer(withServerUnaryInterceptor())
 	authServer := auth.NewAuthServer(db)
+	userServer := user.NewUserServiceServer(db)
 	authPb.RegisterAuthServiceServer(gRPCServer, authServer)
+	userPb.RegisterUserServiceServer(gRPCServer, userServer)
 	log.Printf("server listening at %v", lis.Addr())
 	if err := gRPCServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)

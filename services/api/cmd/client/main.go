@@ -6,10 +6,12 @@ import (
 	"time"
 
 	authPb "api/proto/auth"
+	userPb "api/proto/user"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
 
 var (
@@ -33,7 +35,7 @@ func TryRegister(c authPb.AuthServiceClient, ctx context.Context) {
 	log.Printf("UserId %s", r.GetUserId())
 }
 
-func TryLogin(c authPb.AuthServiceClient, ctx context.Context) {
+func TryLogin(c authPb.AuthServiceClient, ctx context.Context) string {
 	res, err := c.Login(ctx, &authPb.LoginRequest{
 		Email:    "kholidbughowi@gmail.com",
 		Password: "Yhf7763hfe",
@@ -42,6 +44,57 @@ func TryLogin(c authPb.AuthServiceClient, ctx context.Context) {
 		log.Fatalf("Could not login user: %v", err)
 	}
 	log.Printf("Token %s", res.GetToken())
+	return res.GetToken()
+}
+
+func GetUserProfile(c userPb.UserServiceClient, ctx context.Context) {
+	res, err := c.Profile(ctx, &userPb.UserId{
+		IdUser: "6baa6634-1e28-4e89-a36a-aa31c32ff482",
+	})
+	if err != nil {
+		log.Fatalf("Could not get user profile: %v", err)
+	}
+	log.Println(res)
+}
+
+func TryUpdateProfile(c userPb.UserServiceClient, ctx context.Context) {
+	res, err := c.Update(ctx, &userPb.UpdateRequest{
+		IdUser: "6baa6634-1e28-4e89-a36a-aa31c32ff482",
+		UserData: &userPb.EditableData{
+			Fullname:      "Mohamad Kholid Bughowi",
+			Email:         "kholidbughowi@gmail.com",
+			Birthdate:     "2001-10-15",
+			Address:       "Informatics ITS",
+			IdMbti:        1,
+			IdJobPosition: 1,
+		},
+	})
+	if err != nil {
+		log.Fatalf("Could not update user profile: %v", err)
+	}
+	log.Println(res)
+}
+
+func TryChangePassword(c userPb.UserServiceClient, ctx context.Context) {
+	res, err := c.ChangePassword(ctx, &userPb.ChangePasswordRequest{
+		IdUser:      "6baa6634-1e28-4e89-a36a-aa31c32ff482",
+		OldPassword: "Yhf7763hfe",
+		NewPassword: "Yeye2y12345",
+	})
+	if err != nil {
+		log.Fatalf("Could not change user password: %v", err)
+	}
+	log.Println(res)
+}
+
+func TryDeleteProfile(c userPb.UserServiceClient, ctx context.Context) {
+	res, err := c.Delete(ctx, &userPb.UserId{
+		IdUser: "6baa6634-1e28-4e89-a36a-aa31c32ff482",
+	})
+	if err != nil {
+		log.Fatalf("Could not delete user profile: %v", err)
+	}
+	log.Println(res)
 }
 
 func main() {
@@ -52,14 +105,17 @@ func main() {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := authPb.NewAuthServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	authClient := authPb.NewAuthServiceClient(conn)
+	userClient := userPb.NewUserServiceClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	// test register
-	// TryRegister(c, ctx)
-
-	// test login
-	TryLogin(c, ctx)
-
+	TryRegister(authClient, ctx)
+	token := TryLogin(authClient, ctx)
+	md := metadata.Pairs("authorization", token)
+	ctx = metadata.NewOutgoingContext(ctx, md)
+	GetUserProfile(userClient, ctx)
+	TryUpdateProfile(userClient, ctx)
+	TryChangePassword(userClient, ctx)
+	TryDeleteProfile(userClient, ctx)
 }
