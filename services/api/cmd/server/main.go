@@ -6,17 +6,17 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"api/configs"
 	"api/internal/db"
 	"api/internal/service/auth"
 	"api/internal/service/user"
-	authPb "api/proto/auth"
-	userPb "api/proto/user"
+	pb "api/proto"
 
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -57,7 +57,7 @@ func authorize(ctx context.Context) error {
 		return status.Errorf(codes.Unauthenticated, "Authorization token is not supplied")
 	}
 	token := authHeader[0]
-	secret := configs.ViperEnvVariable("JWT_ACCESS_TOKEN_SECRET")
+	secret := os.Getenv("JWT_ACCESS_TOKEN_SECRET")
 	_, err := auth.DecodeJWTToken(token, secret)
 	if err != nil {
 		return status.Errorf(codes.Unauthenticated, err.Error())
@@ -70,17 +70,21 @@ func withServerUnaryInterceptor() grpc.ServerOption {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	flag.Parse()
 
-	dbHost := configs.ViperEnvVariable("DB_HOST")
-	dbPortStr := configs.ViperEnvVariable("DB_PORT")
+	dbHost := os.Getenv("DB_HOST")
+	dbPortStr := os.Getenv("DB_PORT")
 	dbPort, err := strconv.Atoi(dbPortStr)
 	if err != nil {
 		log.Fatal(err)
 	}
-	dbUser := configs.ViperEnvVariable("DB_USER")
-	dbPass := configs.ViperEnvVariable("DB_PASSWORD")
-	dbName := configs.ViperEnvVariable("DB_DATABASE")
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_DATABASE")
 	db := db.Connect(dbHost, dbPort, dbUser, dbPass, dbName)
 	defer db.Close()
 
@@ -92,8 +96,8 @@ func main() {
 	gRPCServer := grpc.NewServer(withServerUnaryInterceptor())
 	authServer := auth.NewAuthServer(db)
 	userServer := user.NewUserServiceServer(db)
-	authPb.RegisterAuthServiceServer(gRPCServer, authServer)
-	userPb.RegisterUserServiceServer(gRPCServer, userServer)
+	pb.RegisterAuthServiceServer(gRPCServer, authServer)
+	pb.RegisterUserServiceServer(gRPCServer, userServer)
 	log.Printf("server listening at %v", lis.Addr())
 	if err := gRPCServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)

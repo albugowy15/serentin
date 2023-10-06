@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+option go_package = "api/proto";
+package api;
+
+// common
+message Personality {
+    int32 id_personality = 1; // Unique identifier for the personality.
+    string personality = 2; // Name of the personality.
+    string description = 3; // Description of the personality.
+}
+
+// JobPosition represents a job position.
+message JobPosition {
+    int32 id_job_position = 1; // Unique identifier for the job position.
+    string job_position = 2; // Name of the job position.
+    string description = 3; // Description of the job position.
+}
+
+// ListPersonalitiesResponse represents a response to the ListPersonalities gRPC method.
+message ListPersonalitiesResponse {
+    repeated Personality personalities = 1; // List of personalities.
+}
+
+// ListPersonalitiesRequest represents a request for the ListPersonalities gRPC method.
+message ListPersonalitiesRequest {}
+
+// ListJobPositionsRequest represents a request for the ListJobPositions gRPC method.
+message ListJobPositionsRequest {}
+
+// ListJobPositionsResponse represents a response to the ListJobPositions gRPC method.
+message ListJobPositionsResponse {}
+
+// CommonService provides methods for retrieving common data.
+service CommonService {
+    rpc ListPersonalities (ListPersonalitiesRequest) returns (ListPersonalitiesResponse) {}
+    rpc ListJobPositions (ListJobPositionsRequest) returns (ListJobPositionsResponse) {}
+}
+
+// for auth
+message LoginRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    string token = 1;
+    string refreshToken = 2;
+}
+
+message RegisterRequest {
+    string email = 1;
+    string fullname = 2;
+    string password = 3;
+    string birthdate = 4;
+    string gender = 5;
+    string address = 6;
+    int32 id_mbti = 7;
+    int32 id_job_position = 8;
+}
+
+message RegisterResponse {
+    string userId = 1;
+}
+
+message RefreshTokenRequest {
+    string refreshToken = 1;
+}
+
+service AuthService {
+    rpc Login(LoginRequest) returns (LoginResponse);
+    rpc Register(RegisterRequest) returns (RegisterResponse);
+    rpc RefreshToken(RefreshTokenRequest) returns (LoginResponse);
+}
+
+// for user
+message EditableData {
+    string fullname = 1;
+    string email = 2;
+    string birthdate = 3;
+    string address = 4;
+    int32 id_mbti = 5;
+    int32 id_job_position = 6;
+}
+
+message MessageResponse {
+    string id_user = 1;
+    string message = 2;
+}
+
+message UserId {
+    string id_user = 1;
+}
+
+message ProfileResponse {
+    string fullname = 1;
+    string email = 2;
+    string gender = 3;
+    string birthdate = 4;
+    string address = 5;
+    string personality = 6;
+    string position = 7;
+}
+
+message UpdateRequest {
+    string id_user = 1;
+    EditableData user_data = 2;
+}
+
+message ChangePasswordRequest {
+    string id_user = 1;
+    string old_password = 2;
+    string new_password = 3;
+}
+
+service UserService {
+    rpc Profile (UserId) returns (ProfileResponse);
+    rpc Update (UpdateRequest) returns (MessageResponse);
+    rpc Delete (UserId) returns (MessageResponse);
+    rpc ChangePassword (ChangePasswordRequest) returns (MessageResponse);
+}

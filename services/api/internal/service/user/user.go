@@ -3,7 +3,7 @@ package user
 import (
 	"api/internal/db"
 	"api/pkg/validator"
-	pb "api/proto/user"
+	pb "api/proto"
 	"context"
 	"database/sql"
 	"log"
@@ -86,9 +86,28 @@ func (s *UserServiceServer) Update(ctx context.Context, req *pb.UpdateRequest) (
 	if err := validator.ValidateBirtdate(userData.Birthdate); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid birthdate: %v", err)
 	}
+	// check idMti
+	var idMbti int
+	if err := s.db.Conn.Get(&idMbti, "SELECT id from mbti WHERE id=?", userData.GetIdMbti()); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, status.Error(codes.InvalidArgument, "id_mbti not found")
+		}
+		log.Printf("Error get mbti with id %d: %v\n", userData.GetIdMbti(), err)
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	// check idJobPosition
+	var idJobPosition int
+	if err := s.db.Conn.Get(&idJobPosition, "SELECT id from job_positions WHERE id=?", userData.GetIdJobPosition()); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, status.Error(codes.InvalidArgument, "id_job_position not found")
+		}
+		log.Printf("Error get job position with id %d: %v\n", userData.GetIdJobPosition(), err)
+		return nil, status.Error(codes.Internal, "internal error")
+	}
 
 	updateUserStmt := `UPDATE users SET fullname=?, email=?, birthdate=?, address=?, id_mbti=?, id_job_position=? WHERE id=?`
-	result := s.db.Conn.MustExec(
+	if _, err := s.db.Conn.Exec(
 		updateUserStmt,
 		userData.GetFullname(),
 		userData.GetEmail(),
@@ -97,9 +116,7 @@ func (s *UserServiceServer) Update(ctx context.Context, req *pb.UpdateRequest) (
 		userData.GetIdMbti(),
 		userData.GetIdJobPosition(),
 		req.GetIdUser(),
-	)
-	_, err := result.RowsAffected()
-	if err != nil {
+	); err != nil {
 		log.Printf("Erorr update user %s: %v\n", req.GetIdUser(), err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
@@ -158,9 +175,7 @@ func (s *UserServiceServer) ChangePassword(ctx context.Context, req *pb.ChangePa
 		log.Printf("Erorr update password for user %s: %v\n", req.GetIdUser(), err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
-	// if rowsAffected == 0 {
-	// 	return nil, status.Error(codes.NotFound, "user not found")
-	// }
+
 	return &pb.MessageResponse{
 		IdUser:  req.GetIdUser(),
 		Message: "successfully change password",
