@@ -2,7 +2,7 @@ package auth
 
 import (
 	"api/pkg/validator"
-	pb "api/proto/auth"
+	pb "api/proto"
 	"fmt"
 )
 

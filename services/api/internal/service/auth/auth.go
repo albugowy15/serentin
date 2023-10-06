@@ -1,12 +1,12 @@
 package auth
 
 import (
-	"api/configs"
 	"api/internal/db"
-	pb "api/proto/auth"
+	pb "api/proto"
 	"context"
 	"database/sql"
 	"log"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -42,11 +42,32 @@ func (s *AuthServiceServer) Register(ctx context.Context, req *pb.RegisterReques
 		log.Fatalf("Error hashing password: %v", err)
 	}
 
+	// check idMti
+	var idMbti int
+	if err := s.db.Conn.Get(&idMbti, "SELECT id from mbti WHERE id=?", req.GetIdMbti()); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, status.Error(codes.InvalidArgument, "id_mbti not found")
+		}
+		log.Printf("Error get mbti with id %d: %v\n", req.GetIdMbti(), err)
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
+	// check idJobPosition
+	var idJobPosition int
+	if err := s.db.Conn.Get(&idJobPosition, "SELECT id from job_positions WHERE id=?", req.GetIdJobPosition()); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, status.Error(codes.InvalidArgument, "id_job_position not found")
+		}
+		log.Printf("Error get job position with id %d: %v\n", req.GetIdJobPosition(), err)
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+
 	userStmt := `INSERT INTO users 
 				(id, email, fullname, password, gender, birthdate, address, role, id_mbti, id_job_position) 
 				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	userId := uuid.New().String()
-	res := s.db.Conn.MustExec(userStmt,
+
+	if _, err := s.db.Conn.Exec(userStmt,
 		userId,
 		req.Email,
 		req.Fullname,
@@ -57,9 +78,7 @@ func (s *AuthServiceServer) Register(ctx context.Context, req *pb.RegisterReques
 		"employee",
 		req.IdMbti,
 		req.IdJobPosition,
-	)
-	if rowsCount, err := res.RowsAffected(); rowsCount == 0 || err != nil {
-		log.Printf("Rows affected: %v\n", rowsCount)
+	); err != nil {
 		log.Printf("Error inserting user: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
@@ -100,7 +119,7 @@ func (s *AuthServiceServer) Login(ctx context.Context, req *pb.LoginRequest) (*p
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
-	jwtAccessKey := configs.ViperEnvVariable("JWT_ACCESS_TOKEN_SECRET")
+	jwtAccessKey := os.Getenv("JWT_ACCESS_TOKEN_SECRET")
 	tokenStr := CreateJWTToken(jwtAccessKey, tokenClaims)
 
 	refreshTokenClaims := &Claims{
@@ -111,7 +130,7 @@ func (s *AuthServiceServer) Login(ctx context.Context, req *pb.LoginRequest) (*p
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
-	jwtRefreshKey := configs.ViperEnvVariable("JWT_REFRESH_TOKEN_SECRET")
+	jwtRefreshKey := os.Getenv("JWT_REFRESH_TOKEN_SECRET")
 	refreshTokenStr := CreateJWTToken(jwtRefreshKey, refreshTokenClaims)
 
 	// send jwt
@@ -123,13 +142,13 @@ func (s *AuthServiceServer) Login(ctx context.Context, req *pb.LoginRequest) (*p
 
 func (s *AuthServiceServer) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.LoginResponse, error) {
 	tokenStr := req.GetRefreshToken()
-	jwtRefreshKey := configs.ViperEnvVariable("JWT_REFRESH_TOKEN_SECRET")
+	jwtRefreshKey := os.Getenv("JWT_REFRESH_TOKEN_SECRET")
 	claims, err := DecodeJWTToken(tokenStr, jwtRefreshKey)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	if time.Until(claims.ExpiresAt.Time) > 30*time.Second {
+	if time.Until(claims.ExpiresAt.Time) < 30*time.Second {
 		return nil, status.Error(codes.InvalidArgument, "Refresh token expired")
 	}
 
@@ -141,7 +160,7 @@ func (s *AuthServiceServer) RefreshToken(ctx context.Context, req *pb.RefreshTok
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
-	jwtAccessKey := configs.ViperEnvVariable("JWT_ACCESS_TOKEN_SECRET")
+	jwtAccessKey := os.Getenv("JWT_ACCESS_TOKEN_SECRET")
 	newTokenStr := CreateJWTToken(jwtAccessKey, newTokenClaims)
 
 	refreshTokenClaims := &Claims{

@@ -2,7 +2,7 @@ package auth_test
 
 import (
 	"api/internal/service/auth"
-	pb "api/proto/auth"
+	pb "api/proto"
 	"testing"
 )
 
