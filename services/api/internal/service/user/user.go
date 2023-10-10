@@ -2,6 +2,7 @@ package user
 
 import (
 	"api/internal/db"
+	"api/pkg/session"
 	"api/pkg/validator"
 	pb "api/proto"
 	"context"
@@ -34,8 +35,9 @@ func NewUserServiceServer(db *db.Database) *UserServiceServer {
 	}
 }
 
-func (s *UserServiceServer) Profile(ctx context.Context, req *pb.UserId) (*pb.ProfileResponse, error) {
-
+func (s *UserServiceServer) Profile(ctx context.Context, req *pb.UserRequest) (*pb.ProfileResponse, error) {
+	// validate user id
+	session := session.GetSession(ctx)
 	user := &User{}
 	err := s.db.Conn.Get(
 		user,
@@ -44,13 +46,13 @@ func (s *UserServiceServer) Profile(ctx context.Context, req *pb.UserId) (*pb.Pr
 		FROM users u INNER JOIN mbti m ON u.id_mbti = m.id 
 		INNER JOIN job_positions j ON j.id = u.id_job_position 
 		WHERE u.id=?`,
-		req.GetIdUser(),
+		session.ID,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, status.Error(codes.NotFound, "user not found")
 		}
-		log.Printf("Error get user with id: %s :%v\n", req.GetIdUser(), err)
+		log.Printf("Error get user with id: %s :%v\n", session.ID, err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
@@ -74,64 +76,65 @@ func (s *UserServiceServer) Profile(ctx context.Context, req *pb.UserId) (*pb.Pr
 	}, nil
 }
 
-func (s *UserServiceServer) Update(ctx context.Context, req *pb.UpdateRequest) (*pb.MessageResponse, error) {
+func (s *UserServiceServer) Update(ctx context.Context, req *pb.EditableData) (*pb.MessageResponse, error) {
+	session := session.GetSession(ctx)
 	// validate request
-	userData := req.GetUserData()
-	if err := validator.ValidateFullName(userData.Fullname); err != nil {
+	if err := validator.ValidateFullName(req.GetFullname()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid fullname: %v", err)
 	}
-	if err := validator.ValidateEmail(userData.Email); err != nil {
+	if err := validator.ValidateEmail(req.GetEmail()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid email: %v", err)
 	}
-	if err := validator.ValidateBirtdate(userData.Birthdate); err != nil {
+	if err := validator.ValidateBirtdate(req.GetBirthdate()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid birthdate: %v", err)
 	}
 	// check idMti
 	var idMbti int
-	if err := s.db.Conn.Get(&idMbti, "SELECT id from mbti WHERE id=?", userData.GetIdMbti()); err != nil {
+	if err := s.db.Conn.Get(&idMbti, "SELECT id from mbti WHERE id=?", req.GetIdMbti()); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, status.Error(codes.InvalidArgument, "id_mbti not found")
 		}
-		log.Printf("Error get mbti with id %d: %v\n", userData.GetIdMbti(), err)
+		log.Printf("Error get mbti with id %d: %v\n", req.GetIdMbti(), err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	// check idJobPosition
 	var idJobPosition int
-	if err := s.db.Conn.Get(&idJobPosition, "SELECT id from job_positions WHERE id=?", userData.GetIdJobPosition()); err != nil {
+	if err := s.db.Conn.Get(&idJobPosition, "SELECT id from job_positions WHERE id=?", req.GetIdJobPosition()); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, status.Error(codes.InvalidArgument, "id_job_position not found")
 		}
-		log.Printf("Error get job position with id %d: %v\n", userData.GetIdJobPosition(), err)
+		log.Printf("Error get job position with id %d: %v\n", req.GetIdJobPosition(), err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	updateUserStmt := `UPDATE users SET fullname=?, email=?, birthdate=?, address=?, id_mbti=?, id_job_position=? WHERE id=?`
 	if _, err := s.db.Conn.Exec(
 		updateUserStmt,
-		userData.GetFullname(),
-		userData.GetEmail(),
-		userData.GetBirthdate(),
-		userData.GetAddress(),
-		userData.GetIdMbti(),
-		userData.GetIdJobPosition(),
-		req.GetIdUser(),
+		req.GetFullname(),
+		req.GetEmail(),
+		req.GetBirthdate(),
+		req.GetAddress(),
+		req.GetIdMbti(),
+		req.GetIdJobPosition(),
+		session.ID,
 	); err != nil {
-		log.Printf("Erorr update user %s: %v\n", req.GetIdUser(), err)
+		log.Printf("Erorr update user %s: %v\n", session.ID, err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	return &pb.MessageResponse{
-		IdUser:  req.GetIdUser(),
+		IdUser:  session.ID,
 		Message: "successfully update user",
 	}, nil
 }
 
-func (s *UserServiceServer) Delete(ctx context.Context, req *pb.UserId) (*pb.MessageResponse, error) {
-	result := s.db.Conn.MustExec("DELETE FROM users WHERE id=?", req.GetIdUser())
+func (s *UserServiceServer) Delete(ctx context.Context, req *pb.UserRequest) (*pb.MessageResponse, error) {
+	session := session.GetSession(ctx)
+	result := s.db.Conn.MustExec("DELETE FROM users WHERE id=?", session.ID)
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.Printf("Erorr delete user %s: %v\n", req.GetIdUser(), err)
+		log.Printf("Erorr delete user %s: %v\n", session.ID, err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	if rowsAffected == 0 {
@@ -139,23 +142,24 @@ func (s *UserServiceServer) Delete(ctx context.Context, req *pb.UserId) (*pb.Mes
 	}
 
 	return &pb.MessageResponse{
-		IdUser:  req.GetIdUser(),
+		IdUser:  session.ID,
 		Message: "successfully delete user",
 	}, nil
 }
 
 func (s *UserServiceServer) ChangePassword(ctx context.Context, req *pb.ChangePasswordRequest) (*pb.MessageResponse, error) {
+	session := session.GetSession(ctx)
 	if err := validator.ValidatePassword(req.GetNewPassword()); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid password: %v", err)
 	}
 
 	var oldPassword string
-	err := s.db.Conn.Get(&oldPassword, "SELECT password FROM users WHERE id=?", req.GetIdUser())
+	err := s.db.Conn.Get(&oldPassword, "SELECT password FROM users WHERE id=?", session.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, status.Error(codes.NotFound, "user not found")
 		}
-		log.Printf("Error change password for user %s: %v\n", req.GetIdUser(), err)
+		log.Printf("Error change password for user %s: %v\n", session.ID, err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
@@ -170,14 +174,14 @@ func (s *UserServiceServer) ChangePassword(ctx context.Context, req *pb.ChangePa
 	}
 
 	updatePasswordStmt := `UPDATE users SET password=? WHERE id=?`
-	result := s.db.Conn.MustExec(updatePasswordStmt, hashedNewPassword, req.GetIdUser())
+	result := s.db.Conn.MustExec(updatePasswordStmt, hashedNewPassword, session.ID)
 	if _, err := result.RowsAffected(); err != nil {
-		log.Printf("Erorr update password for user %s: %v\n", req.GetIdUser(), err)
+		log.Printf("Erorr update password for user %s: %v\n", session.ID, err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
 	return &pb.MessageResponse{
-		IdUser:  req.GetIdUser(),
+		IdUser:  session.ID,
 		Message: "successfully change password",
 	}, nil
 }

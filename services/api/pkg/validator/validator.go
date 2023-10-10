@@ -81,3 +81,10 @@ func ValidateBirtdate(birthdate string) error {
 	}
 	return nil
 }
+
+func ValidateLogbook(logbook string) error {
+	if len(logbook) < 10 || len(logbook) > 100 {
+		return fmt.Errorf("logbook must be between 10 and 100 characters")
+	}
+	return nil
+}

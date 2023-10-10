@@ -302,9 +302,9 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
-	Profile(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*ProfileResponse, error)
-	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*MessageResponse, error)
-	Delete(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*MessageResponse, error)
+	Profile(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*ProfileResponse, error)
+	Update(ctx context.Context, in *EditableData, opts ...grpc.CallOption) (*MessageResponse, error)
+	Delete(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*MessageResponse, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*MessageResponse, error)
 }
 
@@ -316,7 +316,7 @@ func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
 	return &userServiceClient{cc}
 }
 
-func (c *userServiceClient) Profile(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*ProfileResponse, error) {
+func (c *userServiceClient) Profile(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*ProfileResponse, error) {
 	out := new(ProfileResponse)
 	err := c.cc.Invoke(ctx, "/api.UserService/Profile", in, out, opts...)
 	if err != nil {
@@ -325,7 +325,7 @@ func (c *userServiceClient) Profile(ctx context.Context, in *UserId, opts ...grp
 	return out, nil
 }
 
-func (c *userServiceClient) Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*MessageResponse, error) {
+func (c *userServiceClient) Update(ctx context.Context, in *EditableData, opts ...grpc.CallOption) (*MessageResponse, error) {
 	out := new(MessageResponse)
 	err := c.cc.Invoke(ctx, "/api.UserService/Update", in, out, opts...)
 	if err != nil {
@@ -334,7 +334,7 @@ func (c *userServiceClient) Update(ctx context.Context, in *UpdateRequest, opts 
 	return out, nil
 }
 
-func (c *userServiceClient) Delete(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*MessageResponse, error) {
+func (c *userServiceClient) Delete(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*MessageResponse, error) {
 	out := new(MessageResponse)
 	err := c.cc.Invoke(ctx, "/api.UserService/Delete", in, out, opts...)
 	if err != nil {
@@ -356,9 +356,9 @@ func (c *userServiceClient) ChangePassword(ctx context.Context, in *ChangePasswo
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
 type UserServiceServer interface {
-	Profile(context.Context, *UserId) (*ProfileResponse, error)
-	Update(context.Context, *UpdateRequest) (*MessageResponse, error)
-	Delete(context.Context, *UserId) (*MessageResponse, error)
+	Profile(context.Context, *UserRequest) (*ProfileResponse, error)
+	Update(context.Context, *EditableData) (*MessageResponse, error)
+	Delete(context.Context, *UserRequest) (*MessageResponse, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*MessageResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
@@ -367,13 +367,13 @@ type UserServiceServer interface {
 type UnimplementedUserServiceServer struct {
 }
 
-func (UnimplementedUserServiceServer) Profile(context.Context, *UserId) (*ProfileResponse, error) {
+func (UnimplementedUserServiceServer) Profile(context.Context, *UserRequest) (*ProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Profile not implemented")
 }
-func (UnimplementedUserServiceServer) Update(context.Context, *UpdateRequest) (*MessageResponse, error) {
+func (UnimplementedUserServiceServer) Update(context.Context, *EditableData) (*MessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-func (UnimplementedUserServiceServer) Delete(context.Context, *UserId) (*MessageResponse, error) {
+func (UnimplementedUserServiceServer) Delete(context.Context, *UserRequest) (*MessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 func (UnimplementedUserServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*MessageResponse, error) {
@@ -393,7 +393,7 @@ func RegisterUserServiceServer(s grpc.ServiceRegistrar, srv UserServiceServer) {
 }
 
 func _UserService_Profile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserId)
+	in := new(UserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -405,13 +405,13 @@ func _UserService_Profile_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/api.UserService/Profile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).Profile(ctx, req.(*UserId))
+		return srv.(UserServiceServer).Profile(ctx, req.(*UserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateRequest)
+	in := new(EditableData)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -423,13 +423,13 @@ func _UserService_Update_Handler(srv interface{}, ctx context.Context, dec func(
 		FullMethod: "/api.UserService/Update",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).Update(ctx, req.(*UpdateRequest))
+		return srv.(UserServiceServer).Update(ctx, req.(*EditableData))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserId)
+	in := new(UserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -441,7 +441,7 @@ func _UserService_Delete_Handler(srv interface{}, ctx context.Context, dec func(
 		FullMethod: "/api.UserService/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).Delete(ctx, req.(*UserId))
+		return srv.(UserServiceServer).Delete(ctx, req.(*UserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -486,6 +486,200 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangePassword",
 			Handler:    _UserService_ChangePassword_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "proto/api.proto",
+}
+
+// LogbookServiceClient is the client API for LogbookService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type LogbookServiceClient interface {
+	Create(ctx context.Context, in *CreateLogbookRequest, opts ...grpc.CallOption) (*LogbookResponseMessage, error)
+	List(ctx context.Context, in *ListLogbookRequest, opts ...grpc.CallOption) (*ListLogbookResponse, error)
+	Update(ctx context.Context, in *UpdateLogbookRequest, opts ...grpc.CallOption) (*LogbookResponseMessage, error)
+	Delete(ctx context.Context, in *DeleteLogbookRequest, opts ...grpc.CallOption) (*LogbookResponseMessage, error)
+}
+
+type logbookServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewLogbookServiceClient(cc grpc.ClientConnInterface) LogbookServiceClient {
+	return &logbookServiceClient{cc}
+}
+
+func (c *logbookServiceClient) Create(ctx context.Context, in *CreateLogbookRequest, opts ...grpc.CallOption) (*LogbookResponseMessage, error) {
+	out := new(LogbookResponseMessage)
+	err := c.cc.Invoke(ctx, "/api.LogbookService/Create", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *logbookServiceClient) List(ctx context.Context, in *ListLogbookRequest, opts ...grpc.CallOption) (*ListLogbookResponse, error) {
+	out := new(ListLogbookResponse)
+	err := c.cc.Invoke(ctx, "/api.LogbookService/List", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *logbookServiceClient) Update(ctx context.Context, in *UpdateLogbookRequest, opts ...grpc.CallOption) (*LogbookResponseMessage, error) {
+	out := new(LogbookResponseMessage)
+	err := c.cc.Invoke(ctx, "/api.LogbookService/Update", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *logbookServiceClient) Delete(ctx context.Context, in *DeleteLogbookRequest, opts ...grpc.CallOption) (*LogbookResponseMessage, error) {
+	out := new(LogbookResponseMessage)
+	err := c.cc.Invoke(ctx, "/api.LogbookService/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// LogbookServiceServer is the server API for LogbookService service.
+// All implementations must embed UnimplementedLogbookServiceServer
+// for forward compatibility
+type LogbookServiceServer interface {
+	Create(context.Context, *CreateLogbookRequest) (*LogbookResponseMessage, error)
+	List(context.Context, *ListLogbookRequest) (*ListLogbookResponse, error)
+	Update(context.Context, *UpdateLogbookRequest) (*LogbookResponseMessage, error)
+	Delete(context.Context, *DeleteLogbookRequest) (*LogbookResponseMessage, error)
+	mustEmbedUnimplementedLogbookServiceServer()
+}
+
+// UnimplementedLogbookServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedLogbookServiceServer struct {
+}
+
+func (UnimplementedLogbookServiceServer) Create(context.Context, *CreateLogbookRequest) (*LogbookResponseMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedLogbookServiceServer) List(context.Context, *ListLogbookRequest) (*ListLogbookResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedLogbookServiceServer) Update(context.Context, *UpdateLogbookRequest) (*LogbookResponseMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedLogbookServiceServer) Delete(context.Context, *DeleteLogbookRequest) (*LogbookResponseMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedLogbookServiceServer) mustEmbedUnimplementedLogbookServiceServer() {}
+
+// UnsafeLogbookServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to LogbookServiceServer will
+// result in compilation errors.
+type UnsafeLogbookServiceServer interface {
+	mustEmbedUnimplementedLogbookServiceServer()
+}
+
+func RegisterLogbookServiceServer(s grpc.ServiceRegistrar, srv LogbookServiceServer) {
+	s.RegisterService(&LogbookService_ServiceDesc, srv)
+}
+
+func _LogbookService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateLogbookRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogbookServiceServer).Create(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.LogbookService/Create",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogbookServiceServer).Create(ctx, req.(*CreateLogbookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LogbookService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListLogbookRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogbookServiceServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.LogbookService/List",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogbookServiceServer).List(ctx, req.(*ListLogbookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LogbookService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateLogbookRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogbookServiceServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.LogbookService/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogbookServiceServer).Update(ctx, req.(*UpdateLogbookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LogbookService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteLogbookRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogbookServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.LogbookService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogbookServiceServer).Delete(ctx, req.(*DeleteLogbookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// LogbookService_ServiceDesc is the grpc.ServiceDesc for LogbookService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var LogbookService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.LogbookService",
+	HandlerType: (*LogbookServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _LogbookService_Create_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _LogbookService_List_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _LogbookService_Update_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _LogbookService_Delete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
