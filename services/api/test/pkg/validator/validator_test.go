@@ -166,3 +166,33 @@ func TestBirtdateValidator(t *testing.T) {
 		})
 	}
 }
+
+func TestLogbookValidator(t *testing.T) {
+	tests := []BasicTestCase{
+		{
+			name:  "Invalid length",
+			value: "Hey",
+			valid: false,
+		},
+		{
+			name:  "Valid logbook",
+			value: "Working on something really cool",
+			valid: true,
+		},
+	}
+
+	for _, c := range tests {
+		t.Run(c.name, func(t *testing.T) {
+			err := validator.ValidateLogbook(c.value)
+			var validated bool
+			if err != nil {
+				validated = false
+			} else {
+				validated = true
+			}
+			if validated != c.valid {
+				t.Fatalf("invalid logbook: %v\n", err)
+			}
+		})
+	}
+}
