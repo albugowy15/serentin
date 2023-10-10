@@ -36,8 +36,10 @@ func DecodeJWTToken(tokenStr string, secret string) (*Claims, error) {
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
 			return nil, status.Error(codes.Unauthenticated, "Unauthorized")
+		} else if err == jwt.ErrTokenExpired {
+			return nil, status.Error(codes.Unauthenticated, "Token expired")
 		}
-		return nil, status.Error(codes.InvalidArgument, "Bad request")
+		return nil, status.Error(codes.InvalidArgument, "Invalid token")
 	}
 	if !token.Valid {
 		return nil, status.Error(codes.Unauthenticated, "Unathorized")

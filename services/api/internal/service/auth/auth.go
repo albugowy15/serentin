@@ -115,7 +115,7 @@ func (s *AuthServiceServer) Login(ctx context.Context, req *pb.LoginRequest) (*p
 		Email: userCredential.Email,
 		ID:    userCredential.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 15)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 1)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
@@ -156,7 +156,7 @@ func (s *AuthServiceServer) RefreshToken(ctx context.Context, req *pb.RefreshTok
 		Email: claims.Email,
 		ID:    claims.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 15)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 1)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}

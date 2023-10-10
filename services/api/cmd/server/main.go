@@ -13,6 +13,8 @@ import (
 
 	"api/internal/db"
 	"api/internal/service/auth"
+	"api/internal/service/common"
+	"api/internal/service/logbook"
 	"api/internal/service/user"
 	pb "api/proto"
 
@@ -24,7 +26,11 @@ import (
 )
 
 var (
-	port = flag.Int("port", 50051, "The server port")
+	port          = flag.Int("port", 50051, "The server port")
+	publicMethods = []string{
+		"/api.AuthService",
+		"/api.CommonService",
+	}
 )
 
 func serverInterceptor(
@@ -34,15 +40,21 @@ func serverInterceptor(
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
 	start := time.Now()
-	// TODO : change the method
-	if !strings.HasPrefix(info.FullMethod, "/auth") {
+	isPublic := false
+	for _, method := range publicMethods {
+		if strings.HasPrefix(info.FullMethod, method) {
+			isPublic = true
+			break
+		}
+	}
+	if !isPublic {
 		if err := authorize(ctx); err != nil {
+			log.Printf("Request - Method:%s\tDuration:%s\tError:%v\n", info.FullMethod, time.Since(start), err)
 			return nil, err
 		}
 	}
 	h, err := handler(ctx, req)
 	log.Printf("Request - Method:%s\tDuration:%s\tError:%v\n", info.FullMethod, time.Since(start), err)
-
 	return h, err
 }
 
@@ -70,12 +82,14 @@ func withServerUnaryInterceptor() grpc.ServerOption {
 }
 
 func main() {
+	// load env and flag
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 	flag.Parse()
 
+	// initialize db
 	dbHost := os.Getenv("DB_HOST")
 	dbPortStr := os.Getenv("DB_PORT")
 	dbPort, err := strconv.Atoi(dbPortStr)
@@ -88,18 +102,30 @@ func main() {
 	db := db.Connect(dbHost, dbPort, dbUser, dbPass, dbName)
 	defer db.Close()
 
+	// open tcp connection
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
+	log.Printf("server listening at %v", lis.Addr())
 	defer lis.Close()
+
+	// create gRPC server
 	gRPCServer := grpc.NewServer(withServerUnaryInterceptor())
 	authServer := auth.NewAuthServer(db)
 	userServer := user.NewUserServiceServer(db)
+	commonServer := common.NewCommonServer(db)
+	logbookServer := logbook.NewLogbookServer(db)
+
+	// register gRPC server
 	pb.RegisterAuthServiceServer(gRPCServer, authServer)
 	pb.RegisterUserServiceServer(gRPCServer, userServer)
-	log.Printf("server listening at %v", lis.Addr())
+	pb.RegisterCommonServiceServer(gRPCServer, commonServer)
+	pb.RegisterLogbookServiceServer(gRPCServer, logbookServer)
+
+	// start gRPC server
 	if err := gRPCServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+	defer gRPCServer.Stop()
 }

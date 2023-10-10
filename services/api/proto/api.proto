@@ -3,35 +3,30 @@ syntax = "proto3";
 option go_package = "api/proto";
 package api;
 
-// common
 message Personality {
-    int32 id_personality = 1; // Unique identifier for the personality.
-    string personality = 2; // Name of the personality.
-    string description = 3; // Description of the personality.
+    int32 id_personality = 1; 
+    string personality = 2; 
+    string description = 3;
 }
 
-// JobPosition represents a job position.
 message JobPosition {
-    int32 id_job_position = 1; // Unique identifier for the job position.
-    string job_position = 2; // Name of the job position.
-    string description = 3; // Description of the job position.
+    int32 id_job_position = 1;
+    string job_position = 2;
+    string description = 3;
 }
 
-// ListPersonalitiesResponse represents a response to the ListPersonalities gRPC method.
 message ListPersonalitiesResponse {
-    repeated Personality personalities = 1; // List of personalities.
+    repeated Personality personalities = 1;
 }
 
-// ListPersonalitiesRequest represents a request for the ListPersonalities gRPC method.
 message ListPersonalitiesRequest {}
 
-// ListJobPositionsRequest represents a request for the ListJobPositions gRPC method.
 message ListJobPositionsRequest {}
 
-// ListJobPositionsResponse represents a response to the ListJobPositions gRPC method.
-message ListJobPositionsResponse {}
+message ListJobPositionsResponse {
+    repeated JobPosition jobPositions = 1;
+}
 
-// CommonService provides methods for retrieving common data.
 service CommonService {
     rpc ListPersonalities (ListPersonalitiesRequest) returns (ListPersonalitiesResponse) {}
     rpc ListJobPositions (ListJobPositionsRequest) returns (ListJobPositionsResponse) {}
@@ -88,9 +83,7 @@ message MessageResponse {
     string message = 2;
 }
 
-message UserId {
-    string id_user = 1;
-}
+message UserRequest {}
 
 message ProfileResponse {
     string fullname = 1;
@@ -102,20 +95,56 @@ message ProfileResponse {
     string position = 7;
 }
 
-message UpdateRequest {
-    string id_user = 1;
-    EditableData user_data = 2;
-}
 
 message ChangePasswordRequest {
-    string id_user = 1;
     string old_password = 2;
     string new_password = 3;
 }
 
 service UserService {
-    rpc Profile (UserId) returns (ProfileResponse);
-    rpc Update (UpdateRequest) returns (MessageResponse);
-    rpc Delete (UserId) returns (MessageResponse);
+    rpc Profile (UserRequest) returns (ProfileResponse);
+    rpc Update (EditableData) returns (MessageResponse);
+    rpc Delete (UserRequest) returns (MessageResponse);
     rpc ChangePassword (ChangePasswordRequest) returns (MessageResponse);
+}
+
+// for logbook
+message CreateLogbookRequest {
+    string logs = 2;
+    string log_date = 3;
+}
+
+message ListLogbookRequest {
+}
+
+message LogbookResponse {
+    string id_logbook = 1;
+    string logs = 2;
+    string log_date = 3;
+}
+
+message ListLogbookResponse {
+    repeated LogbookResponse logbooks = 2;
+}
+
+message UpdateLogbookRequest {
+    string id_logbook = 1;
+    string logs = 2;
+    string log_date = 3;
+}
+
+message DeleteLogbookRequest {
+    string id_logbook = 1;
+}
+
+message LogbookResponseMessage {
+    string id_logbook = 1;
+    string message = 2;
+}
+
+service LogbookService {
+    rpc Create (CreateLogbookRequest) returns (LogbookResponseMessage);
+    rpc List (ListLogbookRequest) returns (ListLogbookResponse);
+    rpc Update (UpdateLogbookRequest) returns (LogbookResponseMessage);
+    rpc Delete (DeleteLogbookRequest) returns (LogbookResponseMessage);
 }
