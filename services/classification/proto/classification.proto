@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+message StressLevelRequest {
+    int32 heart_rate = 1;
+    int32 systolic_blood_pressure = 2;
+    int32 diastolic_blood_pressure = 3;
+    float body_temp_c = 4;
+}
+
+message StressLevelResponse {
+    int32 stress_level_index = 1;
+    string stress_level_label = 2;
+}
+
+service Classification {
+    rpc PredictStressLevel (StressLevelRequest) returns (StressLevelResponse) {}
+}
