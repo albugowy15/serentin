@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 'use client';
 
 import * as React from 'react';
@@ -11,9 +12,11 @@ const AlertDialog = AlertDialogPrimitive.Root;
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
 
 const AlertDialogPortal = ({
+  // @ts-ignore
   className,
   ...props
 }: AlertDialogPrimitive.AlertDialogPortalProps) => (
+  // @ts-ignore
   <AlertDialogPrimitive.Portal className={cn(className)} {...props} />
 );
 AlertDialogPortal.displayName = AlertDialogPrimitive.Portal.displayName;
