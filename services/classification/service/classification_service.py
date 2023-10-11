@@ -22,15 +22,11 @@ def predict(systolic_blood_pressure, diastolic_blood_pressure, heart_rate, body_
 
 class ClassificationServicer(classification_pb2_grpc.ClassificationServicer):
     def PredictStressLevel(self, request, context):
-        # Get the data from request (body_temp, heart_rate, systolic_blood_pressure, diastolic_blood_pressure)
-        # Pass it to the model
         stress_level_index = predict(
             request.systolic_blood_pressure,
             request.diastolic_blood_pressure,
             request.heart_rate,
             request.body_temp_c
         )
-        # Get the result from the model
         stress_level_label = labels[stress_level_index]
-
         return classification_pb2.StressLevelResponse(stress_level_index=stress_level_index, stress_level_label=stress_level_label)
