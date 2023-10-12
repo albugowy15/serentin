@@ -9,12 +9,13 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 rf_model_path = os.path.join(BASE_DIR, 'model', 'random_forest_1.0.pkl')
 rf_model = joblib.load(rf_model_path)
 
-def predict(systolic_blood_pressure, diastolic_blood_pressure, heart_rate, body_temp):
+def predict(systolic_blood_pressure, diastolic_blood_pressure, heart_rate, oxygen_saturation, body_temp):
     data = pd.DataFrame({
-        'heart_rate': [heart_rate],
-        'systolic_blood_pressure': [systolic_blood_pressure],
         'diastolic_blood_pressure': [diastolic_blood_pressure],
-        'body_temp_c': [body_temp]
+        'systolic_blood_pressure': [systolic_blood_pressure],
+        'heart_rate': [heart_rate],
+        'oxygen_saturation': [oxygen_saturation],
+        'body_temp': [body_temp]
     })
     prediction  = rf_model.predict(data)
     stress_leve_index = int(prediction[0])
@@ -26,6 +27,7 @@ class ClassificationServicer(classification_pb2_grpc.ClassificationServicer):
             request.systolic_blood_pressure,
             request.diastolic_blood_pressure,
             request.heart_rate,
+            request.oxygen_saturation,
             request.body_temp_c
         )
         stress_level_label = labels[stress_level_index]

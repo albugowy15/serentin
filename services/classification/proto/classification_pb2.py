@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14\x63lassification.proto\"\x80\x01\n\x12StressLevelRequest\x12\x12\n\nheart_rate\x18\x01 \x01(\x05\x12\x1f\n\x17systolic_blood_pressure\x18\x02 \x01(\x05\x12 \n\x18\x64iastolic_blood_pressure\x18\x03 \x01(\x05\x12\x13\n\x0b\x62ody_temp_c\x18\x04 \x01(\x02\"M\n\x13StressLevelResponse\x12\x1a\n\x12stress_level_index\x18\x01 \x01(\x05\x12\x1a\n\x12stress_level_label\x18\x02 \x01(\t2S\n\x0e\x43lassification\x12\x41\n\x12PredictStressLevel\x12\x13.StressLevelRequest\x1a\x14.StressLevelResponse\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14\x63lassification.proto\"\x9b\x01\n\x12StressLevelRequest\x12\x12\n\nheart_rate\x18\x01 \x01(\x05\x12\x1f\n\x17systolic_blood_pressure\x18\x02 \x01(\x05\x12 \n\x18\x64iastolic_blood_pressure\x18\x03 \x01(\x05\x12\x19\n\x11oxygen_saturation\x18\x04 \x01(\x05\x12\x13\n\x0b\x62ody_temp_c\x18\x05 \x01(\x02\"M\n\x13StressLevelResponse\x12\x1a\n\x12stress_level_index\x18\x01 \x01(\x05\x12\x1a\n\x12stress_level_label\x18\x02 \x01(\t2S\n\x0e\x43lassification\x12\x41\n\x12PredictStressLevel\x12\x13.StressLevelRequest\x1a\x14.StressLevelResponse\"\x00\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -21,9 +21,9 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'classification_pb2', _globa
 if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
   _globals['_STRESSLEVELREQUEST']._serialized_start=25
-  _globals['_STRESSLEVELREQUEST']._serialized_end=153
-  _globals['_STRESSLEVELRESPONSE']._serialized_start=155
-  _globals['_STRESSLEVELRESPONSE']._serialized_end=232
-  _globals['_CLASSIFICATION']._serialized_start=234
-  _globals['_CLASSIFICATION']._serialized_end=317
+  _globals['_STRESSLEVELREQUEST']._serialized_end=180
+  _globals['_STRESSLEVELRESPONSE']._serialized_start=182
+  _globals['_STRESSLEVELRESPONSE']._serialized_end=259
+  _globals['_CLASSIFICATION']._serialized_start=261
+  _globals['_CLASSIFICATION']._serialized_end=344
 # @@protoc_insertion_point(module_scope)

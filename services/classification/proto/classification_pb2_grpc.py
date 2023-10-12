@@ -2,7 +2,8 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from proto import classification_pb2 as classification__pb2
+from proto import classification_pb2
+
 
 class ClassificationStub(object):
     """Missing associated documentation comment in .proto file."""
@@ -15,8 +16,8 @@ class ClassificationStub(object):
         """
         self.PredictStressLevel = channel.unary_unary(
                 '/Classification/PredictStressLevel',
-                request_serializer=classification__pb2.StressLevelRequest.SerializeToString,
-                response_deserializer=classification__pb2.StressLevelResponse.FromString,
+                request_serializer=classification_pb2.StressLevelRequest.SerializeToString,
+                response_deserializer=classification_pb2.StressLevelResponse.FromString,
                 )
 
 
@@ -34,8 +35,8 @@ def add_ClassificationServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'PredictStressLevel': grpc.unary_unary_rpc_method_handler(
                     servicer.PredictStressLevel,
-                    request_deserializer=classification__pb2.StressLevelRequest.FromString,
-                    response_serializer=classification__pb2.StressLevelResponse.SerializeToString,
+                    request_deserializer=classification_pb2.StressLevelRequest.FromString,
+                    response_serializer=classification_pb2.StressLevelResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -59,7 +60,7 @@ class Classification(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Classification/PredictStressLevel',
-            classification__pb2.StressLevelRequest.SerializeToString,
-            classification__pb2.StressLevelResponse.FromString,
+            classification_pb2.StressLevelRequest.SerializeToString,
+            classification_pb2.StressLevelResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
