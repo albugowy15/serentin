@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -31,7 +30,7 @@ func (s *AuthServiceServer) Register(ctx context.Context, req *pb.RegisterReques
 	if err := ValidateRegister(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	var id string
+	var id int
 	err := s.db.Conn.Get(&id, "SELECT id FROM users WHERE email=?", req.Email)
 	if err == nil {
 		return nil, status.Error(codes.InvalidArgument, "email already exist")
@@ -63,12 +62,10 @@ func (s *AuthServiceServer) Register(ctx context.Context, req *pb.RegisterReques
 	}
 
 	userStmt := `INSERT INTO users 
-				(id, email, fullname, password, gender, birthdate, address, role, id_mbti, id_job_position) 
+				(email, fullname, password, gender, birthdate, address, role, id_mbti, id_job_position) 
 				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	userId := uuid.New().String()
 
-	if _, err := s.db.Conn.Exec(userStmt,
-		userId,
+	res, err := s.db.Conn.Exec(userStmt,
 		req.Email,
 		req.Fullname,
 		hashedPassword,
@@ -78,18 +75,24 @@ func (s *AuthServiceServer) Register(ctx context.Context, req *pb.RegisterReques
 		"employee",
 		req.IdMbti,
 		req.IdJobPosition,
-	); err != nil {
+	)
+	if err != nil {
 		log.Printf("Error inserting user: %v\n", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
+	lastInsertedId, err := res.LastInsertId()
+	if err != nil {
+		log.Printf("Error get last inserted id: %v\n", err)
+		return nil, status.Error(codes.Internal, "internal error")
+	}
 
-	return &pb.RegisterResponse{UserId: userId}, nil
+	return &pb.RegisterResponse{UserId: lastInsertedId}, nil
 }
 
 func (s *AuthServiceServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	// get user id and password from email
 	type UserCredentials struct {
-		ID       string `db:"id"`
+		ID       int64  `db:"id"`
 		Email    string `db:"email"`
 		Password string `db:"password"`
 	}

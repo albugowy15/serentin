@@ -52,7 +52,7 @@ func (s *UserServiceServer) Profile(ctx context.Context, req *pb.UserRequest) (*
 		if err == sql.ErrNoRows {
 			return nil, status.Error(codes.NotFound, "user not found")
 		}
-		log.Printf("Error get user with id: %s :%v\n", session.ID, err)
+		log.Printf("Error get user with id: %d :%v\n", session.ID, err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
@@ -89,7 +89,7 @@ func (s *UserServiceServer) Update(ctx context.Context, req *pb.EditableData) (*
 		return nil, status.Errorf(codes.InvalidArgument, "invalid birthdate: %v", err)
 	}
 	// check idMti
-	var idMbti int
+	var idMbti int64
 	if err := s.db.Conn.Get(&idMbti, "SELECT id from mbti WHERE id=?", req.GetIdMbti()); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, status.Error(codes.InvalidArgument, "id_mbti not found")
@@ -99,7 +99,7 @@ func (s *UserServiceServer) Update(ctx context.Context, req *pb.EditableData) (*
 	}
 
 	// check idJobPosition
-	var idJobPosition int
+	var idJobPosition int64
 	if err := s.db.Conn.Get(&idJobPosition, "SELECT id from job_positions WHERE id=?", req.GetIdJobPosition()); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, status.Error(codes.InvalidArgument, "id_job_position not found")
@@ -119,7 +119,7 @@ func (s *UserServiceServer) Update(ctx context.Context, req *pb.EditableData) (*
 		req.GetIdJobPosition(),
 		session.ID,
 	); err != nil {
-		log.Printf("Erorr update user %s: %v\n", session.ID, err)
+		log.Printf("Erorr update user %d: %v\n", session.ID, err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
@@ -134,7 +134,7 @@ func (s *UserServiceServer) Delete(ctx context.Context, req *pb.UserRequest) (*p
 	result := s.db.Conn.MustExec("DELETE FROM users WHERE id=?", session.ID)
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.Printf("Erorr delete user %s: %v\n", session.ID, err)
+		log.Printf("Erorr delete user %d: %v\n", session.ID, err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	if rowsAffected == 0 {
@@ -159,7 +159,7 @@ func (s *UserServiceServer) ChangePassword(ctx context.Context, req *pb.ChangePa
 		if err == sql.ErrNoRows {
 			return nil, status.Error(codes.NotFound, "user not found")
 		}
-		log.Printf("Error change password for user %s: %v\n", session.ID, err)
+		log.Printf("Error change password for user %d: %v\n", session.ID, err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
@@ -176,7 +176,7 @@ func (s *UserServiceServer) ChangePassword(ctx context.Context, req *pb.ChangePa
 	updatePasswordStmt := `UPDATE users SET password=? WHERE id=?`
 	result := s.db.Conn.MustExec(updatePasswordStmt, hashedNewPassword, session.ID)
 	if _, err := result.RowsAffected(); err != nil {
-		log.Printf("Erorr update password for user %s: %v\n", session.ID, err)
+		log.Printf("Erorr update password for user %d: %v\n", session.ID, err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 

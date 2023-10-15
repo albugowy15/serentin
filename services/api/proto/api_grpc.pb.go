@@ -685,3 +685,126 @@ var LogbookService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "proto/api.proto",
 }
+
+// RecordPhysicalDataServiceClient is the client API for RecordPhysicalDataService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type RecordPhysicalDataServiceClient interface {
+	Save(ctx context.Context, in *SavePhysicalDataRequest, opts ...grpc.CallOption) (*SavePhysicalDataResponse, error)
+	List(ctx context.Context, in *ListPhysicalDataRequest, opts ...grpc.CallOption) (*ListPhysicalDataResponse, error)
+}
+
+type recordPhysicalDataServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewRecordPhysicalDataServiceClient(cc grpc.ClientConnInterface) RecordPhysicalDataServiceClient {
+	return &recordPhysicalDataServiceClient{cc}
+}
+
+func (c *recordPhysicalDataServiceClient) Save(ctx context.Context, in *SavePhysicalDataRequest, opts ...grpc.CallOption) (*SavePhysicalDataResponse, error) {
+	out := new(SavePhysicalDataResponse)
+	err := c.cc.Invoke(ctx, "/api.RecordPhysicalDataService/Save", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *recordPhysicalDataServiceClient) List(ctx context.Context, in *ListPhysicalDataRequest, opts ...grpc.CallOption) (*ListPhysicalDataResponse, error) {
+	out := new(ListPhysicalDataResponse)
+	err := c.cc.Invoke(ctx, "/api.RecordPhysicalDataService/List", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// RecordPhysicalDataServiceServer is the server API for RecordPhysicalDataService service.
+// All implementations must embed UnimplementedRecordPhysicalDataServiceServer
+// for forward compatibility
+type RecordPhysicalDataServiceServer interface {
+	Save(context.Context, *SavePhysicalDataRequest) (*SavePhysicalDataResponse, error)
+	List(context.Context, *ListPhysicalDataRequest) (*ListPhysicalDataResponse, error)
+	mustEmbedUnimplementedRecordPhysicalDataServiceServer()
+}
+
+// UnimplementedRecordPhysicalDataServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedRecordPhysicalDataServiceServer struct {
+}
+
+func (UnimplementedRecordPhysicalDataServiceServer) Save(context.Context, *SavePhysicalDataRequest) (*SavePhysicalDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Save not implemented")
+}
+func (UnimplementedRecordPhysicalDataServiceServer) List(context.Context, *ListPhysicalDataRequest) (*ListPhysicalDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedRecordPhysicalDataServiceServer) mustEmbedUnimplementedRecordPhysicalDataServiceServer() {
+}
+
+// UnsafeRecordPhysicalDataServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to RecordPhysicalDataServiceServer will
+// result in compilation errors.
+type UnsafeRecordPhysicalDataServiceServer interface {
+	mustEmbedUnimplementedRecordPhysicalDataServiceServer()
+}
+
+func RegisterRecordPhysicalDataServiceServer(s grpc.ServiceRegistrar, srv RecordPhysicalDataServiceServer) {
+	s.RegisterService(&RecordPhysicalDataService_ServiceDesc, srv)
+}
+
+func _RecordPhysicalDataService_Save_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SavePhysicalDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecordPhysicalDataServiceServer).Save(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.RecordPhysicalDataService/Save",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecordPhysicalDataServiceServer).Save(ctx, req.(*SavePhysicalDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RecordPhysicalDataService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPhysicalDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecordPhysicalDataServiceServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.RecordPhysicalDataService/List",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecordPhysicalDataServiceServer).List(ctx, req.(*ListPhysicalDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// RecordPhysicalDataService_ServiceDesc is the grpc.ServiceDesc for RecordPhysicalDataService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var RecordPhysicalDataService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.RecordPhysicalDataService",
+	HandlerType: (*RecordPhysicalDataServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Save",
+			Handler:    _RecordPhysicalDataService_Save_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _RecordPhysicalDataService_List_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "proto/api.proto",
+}

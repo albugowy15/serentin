@@ -10,7 +10,7 @@ import (
 )
 
 type Claims struct {
-	ID    string
+	ID    int64
 	Email string
 	jwt.RegisteredClaims
 }

@@ -4,19 +4,19 @@ option go_package = "api/proto";
 package api;
 
 message Personality {
-    int32 id_personality = 1; 
+    int64 id_personality = 1; 
     string personality = 2; 
     string description = 3;
 }
 
 message JobPosition {
-    int32 id_job_position = 1;
+    int64 id_job_position = 1;
     string job_position = 2;
     string description = 3;
 }
 
 message ListPersonalitiesResponse {
-    repeated Personality personalities = 1;
+    repeated Personality personalities = 2;
 }
 
 message ListPersonalitiesRequest {}
@@ -50,12 +50,13 @@ message RegisterRequest {
     string birthdate = 4;
     string gender = 5;
     string address = 6;
-    int32 id_mbti = 7;
-    int32 id_job_position = 8;
+    int64 id_mbti = 7;
+    int64 id_job_position = 8;
 }
 
 message RegisterResponse {
-    string userId = 1;
+    int64 userId = 1;
+    string message = 2;
 }
 
 message RefreshTokenRequest {
@@ -74,12 +75,12 @@ message EditableData {
     string email = 2;
     string birthdate = 3;
     string address = 4;
-    int32 id_mbti = 5;
-    int32 id_job_position = 6;
+    int64 id_mbti = 5;
+    int64 id_job_position = 6;
 }
 
 message MessageResponse {
-    string id_user = 1;
+    int64 id_user = 1;
     string message = 2;
 }
 
@@ -115,30 +116,35 @@ message CreateLogbookRequest {
 }
 
 message ListLogbookRequest {
+    string start_date = 1;
+    string end_date = 2;
 }
 
 message LogbookResponse {
-    string id_logbook = 1;
+    int64 id_logbook = 1;
     string logs = 2;
     string log_date = 3;
 }
 
 message ListLogbookResponse {
-    repeated LogbookResponse logbooks = 2;
+    string start_date = 1;
+    string end_date = 2;
+    int32 total_records = 3;
+    repeated LogbookResponse logbooks = 4;
 }
 
 message UpdateLogbookRequest {
-    string id_logbook = 1;
+    int64 id_logbook = 1;
     string logs = 2;
     string log_date = 3;
 }
 
 message DeleteLogbookRequest {
-    string id_logbook = 1;
+    int64 id_logbook = 1;
 }
 
 message LogbookResponseMessage {
-    string id_logbook = 1;
+    int64 id_logbook = 1;
     string message = 2;
 }
 
@@ -147,4 +153,42 @@ service LogbookService {
     rpc List (ListLogbookRequest) returns (ListLogbookResponse);
     rpc Update (UpdateLogbookRequest) returns (LogbookResponseMessage);
     rpc Delete (DeleteLogbookRequest) returns (LogbookResponseMessage);
+}
+
+message SavePhysicalDataRequest {
+    int32 systolic_blood_pressure = 1;
+    int32 diastlic_blood_pressure = 2;
+    int32 heart_rate = 3;
+    int32 oxygen_saturation = 4;
+    float temperature = 5;
+}
+
+message SavePhysicalDataResponse {
+    string id_physical_data = 1;
+    string message = 2;
+}
+
+message ListPhysicalDataRequest {
+    string start_date = 1;
+    string end_date = 2;
+}
+
+message PhysicalDataResponse {
+    int64 id_physical_data = 1;
+    int32 systolic_blood_pressure = 2;
+    int32 diastlic_blood_pressure = 3;
+    int32 heart_rate = 4;
+    int32 oxygen_saturation = 5;
+    float temperature = 6;
+    string created_at = 7;
+}
+
+message ListPhysicalDataResponse {
+    int32 total_records = 1;
+    repeated PhysicalDataResponse physical_data = 2;
+}
+// for physical data
+service RecordPhysicalDataService {
+    rpc Save (SavePhysicalDataRequest) returns (SavePhysicalDataResponse);
+    rpc List (ListPhysicalDataRequest) returns (ListPhysicalDataResponse);
 }

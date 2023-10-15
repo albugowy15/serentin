@@ -10,7 +10,7 @@ import (
 
 func createToken() string {
 	claims := &auth.Claims{
-		ID:    "63hhfe77-ru3frhhfy-3y4y3y",
+		ID:    3004,
 		Email: "tes@gmail.com",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 15)),

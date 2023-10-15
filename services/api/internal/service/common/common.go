@@ -23,7 +23,7 @@ func NewCommonServer(db *db.Database) *CommonServiceServer {
 
 func (s *CommonServiceServer) ListPersonalities(context.Context, *pb.ListPersonalitiesRequest) (*pb.ListPersonalitiesResponse, error) {
 	type Personalities struct {
-		ID          int32
+		ID          int64
 		Personality string
 		Description string
 	}
@@ -50,7 +50,7 @@ func (s *CommonServiceServer) ListPersonalities(context.Context, *pb.ListPersona
 }
 func (s *CommonServiceServer) ListJobPositions(context.Context, *pb.ListJobPositionsRequest) (*pb.ListJobPositionsResponse, error) {
 	type JobPosition struct {
-		ID          int32
+		ID          int64
 		Position    string
 		Description string
 	}
