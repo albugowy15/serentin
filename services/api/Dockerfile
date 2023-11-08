@@ -13,7 +13,7 @@ COPY . .
 RUN go mod download
 
 # Build the application's binary
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o main cmd/server/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o main cmd/main.go
 
 # Build a smaller image that will only contain the application's binary
 FROM scratch
